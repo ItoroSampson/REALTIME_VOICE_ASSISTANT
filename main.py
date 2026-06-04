@@ -51,6 +51,7 @@ async def voice_endpoint_main(websocket: WebSocket):
     await websocket.accept()
     print("Client's voice connected to endpoint")
     await asyncio.sleep(1)
+    audio_bytes = asyncio.Queue()
 
     async def inbound_loop():
         try:
@@ -58,7 +59,8 @@ async def voice_endpoint_main(websocket: WebSocket):
                 data = await websocket.receive()
                 if "bytes" in data:
                     raw_bytes = data["bytes"]
-                    print("ok, I hear you")
+                    await audio_bytes.put(data["bytes"])
+                    print(f"queued {len(data['bytes'])} bytes of microphone stream")
                 elif "text" in data:
                     print("text_commands not allowed")
                     await websocket.send_text("I only accept raw bytes")
